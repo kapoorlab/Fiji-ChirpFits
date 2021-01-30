@@ -177,7 +177,7 @@ public class LevenbergMarquardtSolverChirp {
 			}
 		
 			
-			if (iter%50 == 0 || iter == 1){
+			if (iter%10 == 0 || iter == 1){
 				if (parent.dataset!=null)
 					parent.dataset.removeAllSeries();
 				
@@ -186,7 +186,7 @@ public class LevenbergMarquardtSolverChirp {
 				
 					if (parent.dataset!=null)
 						parent.dataset.removeAllSeries();
-					parent.frequchirphist.add(new ValuePair<Double, Double> (6.28/((na[parent.degree + 1]) * 60),6.28/((na[parent.degree + 2]) * 60)   ));
+					parent.frequchirphist.add(new ValuePair<Double, Double> (((na[parent.degree + 1]) ),((na[parent.degree + 2]) )   ));
 					
 					double poly;
 					final ArrayList<Pair<Double, Double>> fitpoly = new ArrayList<Pair<Double, Double>>();

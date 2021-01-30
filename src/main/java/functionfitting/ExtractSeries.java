@@ -93,7 +93,7 @@ public class ExtractSeries {
 			
 			
 			double Frequency = Lowfrequency;
-			double endChirp =  Highfrequency ;
+			double endChirp =  Highfrequency;
 			
 			double phase = 0;
 			
@@ -111,10 +111,10 @@ public class ExtractSeries {
 				
 			for (int j = degree; j > 0; --j){
 				
-				initialparameters[j] = (max - min) *Math.exp(-Math.pow(j,2));
+				initialparameters[j] = (max - min) ;
 			}
 			
-			initialparameters[0] = (max + min)/2;
+			initialparameters[0] = (max - min);
 			
 			
 			initialparameters[degree + 1] = Frequency;

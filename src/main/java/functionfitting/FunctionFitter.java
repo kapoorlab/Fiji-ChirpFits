@@ -139,8 +139,8 @@ public class FunctionFitter extends SwingWorker<Void, Void> {
 		}
 		
 		int totaltime = timeseries.size();
-			System.out.println("Frequency (hrs):" + 6.28/((LMparam[degree + 1]) ));
-			System.out.println("Chirp Frequ  (hrs):" + 6.28/((LMparam[degree + 2]) ));
+			System.out.println("Frequency :" + ((LMparam[degree + 1]) ));
+			System.out.println("Chirp Frequ  :" + ((LMparam[degree + 2]) ));
 			System.out.println("Phase:" + ((LMparam[degree + 3])));
 			System.out.println("Back:" + ((LMparam[degree + 4])));
 
@@ -151,13 +151,13 @@ public class FunctionFitter extends SwingWorker<Void, Void> {
 			System.out.println("Back:" + ((LMparam[degree + 4])));
 			
 			parent.rtAll.incrementCounter();
-			parent.rtAll.addValue("Low Frequency (hrs):" , 6.28/((LMparam[degree + 1]) ));
-			parent.rtAll.addValue("High Frequency  (hrs):" , 6.28/((LMparam[degree + 2]) ));
+			parent.rtAll.addValue("Low Frequency:" , ((LMparam[degree + 1]) ));
+			parent.rtAll.addValue("High Frequency :" , ((LMparam[degree + 2]) ));
 			parent.rtAll.show("Frequency by Chirp Model Fits");
 		
 			if (parent.dataset!=null)
 				parent.dataset.removeAllSeries();
-			parent.frequchirphist.add(new ValuePair<Double, Double> (6.28/((LMparam[degree + 1]) ),6.28/((LMparam[degree + 2]))   ));
+			parent.frequchirphist.add(new ValuePair<Double, Double> (((LMparam[degree + 1]) ),((LMparam[degree + 2]))   ));
 			
 			double poly;
 			final ArrayList<Pair<Double, Double>> fitpoly = new ArrayList<Pair<Double, Double>>();
@@ -175,10 +175,10 @@ public class FunctionFitter extends SwingWorker<Void, Void> {
 					polynom+= LMparam[j] * Math.pow(time, j);
 				
 				poly = polynom
-						* Math.cos(Math.toRadians(LMparam[degree + 1] * time
+						* Math.cos(LMparam[degree + 1] * time
 								+ (LMparam[degree + 2] -LMparam[degree + 1]) * time * time
 										/ (2 * totaltime)
-								+ LMparam[degree + 3])) + LMparam[degree + 4] ;
+								+ LMparam[degree + 3]) + LMparam[degree + 4] ;
 				fitpoly.add(new ValuePair<Double, Double>(time, poly));
 			}
 			parent.dataset.addSeries(Mainpeakfitter.drawPoints(timeseries));
