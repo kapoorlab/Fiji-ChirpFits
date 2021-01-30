@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.SwingWorker;
 
 import chirpModels.ChirpFitFunction;
+import chirpModels.LinearChirp;
 import chirpModels.LinearChirpPolyAmp;
 import chirpModels.UserChirpModel.UserModel;
 import net.imglib2.util.Pair;
@@ -18,9 +19,9 @@ public class FunctionFitter extends SwingWorker<Void, Void> {
 	final ArrayList<Pair<Double, Double>> timeseries;
 	private final UserModel model;
 	public int maxiter = 50000;
-	public double lambda = 1e-3;
-	public double termepsilon = 1e-4;
-	double[] LMparam;
+	public double lambda = 1e-4;
+	public double termepsilon = 1e-9;
+	ValuePair<double[], double[]> FLMparam;
 	public double Lowfrequency = 0.02;
 	public double Highfrequency = 0.03;
 	public final int fileindex;
@@ -105,7 +106,8 @@ public class FunctionFitter extends SwingWorker<Void, Void> {
 
 	@Override
 	protected Void doInBackground() throws Exception {
-		
+		if (parent.dataset!=null)
+			parent.dataset.removeAllSeries();
 		// Run the gradient descent using Chirp function fit
 		double[] T = new double[timeseries.size()];
 		double[] I = new double[timeseries.size()];
@@ -121,74 +123,78 @@ public class FunctionFitter extends SwingWorker<Void, Void> {
 		}
 		
 	
+		ChirpFitFunction UserChoiceFunction = null;
+		if (model == UserModel.Linear){
+			
+			UserChoiceFunction = new LinearChirp();
+			
+		}
+		int totaltime = timeseries.size();
 		
-		ChirpFitFunction UserChoiceFunction = new LinearChirpPolyAmp();
+		if (model == UserModel.LinearPolyAmp){
+     	   
+     	   UserChoiceFunction = new LinearChirpPolyAmp();
+        }
 
-       
-       		LMparam = ExtractSeries.initialguess(timeseries, timeseries.size(), degree,  Lowfrequency, Highfrequency, UserModel.LinearPolyAmp);  
+        
+        if (model!= UserModel.LinearPolyAmp)
+		FLMparam = ExtractSeries.initialguess(timeseries, timeseries.size(), 0,  Lowfrequency, Highfrequency, model);
+        
+        else
+    		FLMparam = ExtractSeries.initialguess(timeseries, timeseries.size(), degree,  Lowfrequency, Highfrequency, UserModel.LinearPolyAmp);  
+        double[] Fixedparam = FLMparam.getA();
+    	double[] LMparam = FLMparam.getB();
+        if (model == UserModel.Linear){
+			
+        	
+        	
+			System.out.println("Frequency (hrs):" + ((LMparam[0]) ));
+			System.out.println("Chirp Frequ  (hrs):" + ((LMparam[1]) ));
+			System.out.println("Phase:" + ((LMparam[2])));
+			System.out.println("Back:" + ((LMparam[3])));
+
+
+			System.out.println("Frequency :" + LMparam[0]);
+			System.out.println("Chirp Frequ  :" + LMparam[1]);
+			System.out.println("Phase:" + ((LMparam[2])));
+			System.out.println("Back:" + ((LMparam[3])));
+			
+			
+		
+			
+			parent.frequchirphist.add(new ValuePair<Double, Double> (((LMparam[0])),((LMparam[1]) )   ));
+			
+		
+			
+		       
+		}
            
-		System.out.println("paramlength"+ LMparam.length);
 		try {
 			
 			LevenbergMarquardtSolverChirp LMsolver = new LevenbergMarquardtSolverChirp(parent, parent.jpb);
 			
-			LMsolver.solve(T,timeseries, LMparam, timeseries.size(), I, UserChoiceFunction, lambda,
+			LMsolver.solve(T,timeseries, LMparam, Fixedparam, timeseries.size(), I, UserChoiceFunction, lambda,
 					termepsilon, maxiter, fileindex, totalfiles, model);
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		}
 		
-		int totaltime = timeseries.size();
-			System.out.println("Frequency :" + ((LMparam[degree + 1]) ));
-			System.out.println("Chirp Frequ  :" + ((LMparam[degree + 2]) ));
-			System.out.println("Phase:" + ((LMparam[degree + 3])));
-			System.out.println("Back:" + ((LMparam[degree + 4])));
-
-
-			System.out.println("Frequency :" + LMparam[degree + 1]);
-			System.out.println("Chirp Frequ  :" + LMparam[degree + 2]);
-			System.out.println("Phase:" + ((LMparam[degree + 3])));
-			System.out.println("Back:" + ((LMparam[degree + 4])));
 			
+		if (model == UserModel.LinearPolyAmp){
 			parent.rtAll.incrementCounter();
 			parent.rtAll.addValue("Low Frequency:" , ((LMparam[degree + 1]) ));
 			parent.rtAll.addValue("High Frequency :" , ((LMparam[degree + 2]) ));
 			parent.rtAll.show("Frequency by Chirp Model Fits");
 		
-			if (parent.dataset!=null)
-				parent.dataset.removeAllSeries();
-			parent.frequchirphist.add(new ValuePair<Double, Double> (((LMparam[degree + 1]) ),((LMparam[degree + 2]))   ));
+		}
+		else {
+			parent.rtAll.incrementCounter();
+			parent.rtAll.addValue("Fixed Amp Low Frequency:" , ((LMparam[0]) ));
+			parent.rtAll.addValue("Fixed Amp High Frequency :" , ((LMparam[1]) ));
+			parent.rtAll.show("Frequency by Chirp Model Fits");
 			
-			double poly;
-			final ArrayList<Pair<Double, Double>> fitpoly = new ArrayList<Pair<Double, Double>>();
+		}
 			
-			
-			
-				
-				
-			for (int i = 0; i < timeseries.size(); ++i) {
-
-				Double time = timeseries.get(i).getA();
-
-				double polynom = 0;
-				for (int j = degree; j>=0; --j)
-					polynom+= LMparam[j] * Math.pow(time, j);
-				
-				poly = polynom
-						* Math.cos(LMparam[degree + 1] * time
-								+ (LMparam[degree + 2] -LMparam[degree + 1]) * time * time
-										/ (2 * totaltime)
-								+ LMparam[degree + 3]) + LMparam[degree + 4] ;
-				fitpoly.add(new ValuePair<Double, Double>(time, poly));
-			}
-			parent.dataset.addSeries(Mainpeakfitter.drawPoints(timeseries));
-			parent.dataset.addSeries(Mainpeakfitter.drawPoints(fitpoly, "Fits"));
-			Mainpeakfitter.setColor(parent.chart, 1, new Color(255, 255, 64));
-			Mainpeakfitter.setStroke(parent.chart, 1, 2f);
-			  Mainpeakfitter.setColor(parent.chart, 0, new Color(64, 64, 64));
-		       Mainpeakfitter.setStroke(parent.chart, 0, 2f);
-		       Mainpeakfitter.setDisplayType(parent.chart, 0, false, true);
-		
 		
 		return null;
 	}

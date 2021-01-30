@@ -80,20 +80,53 @@ public class ExtractSeries {
 		return minmax;
 	}
 
-	public static double[] initialguess(ArrayList< Pair< Double, Double > > points,
+	public static ValuePair<double[], double[]> initialguess(ArrayList< Pair< Double, Double > > points,
 			final int totaltime, final int degree, double Lowfrequency, double Highfrequency, UserModel model){
 		
 	
-	
+		if (model == UserModel.Linear){
+		double[] initialparameters = new double[4];
+		double[] fixedparameters = new double[totaltime];
+		
+		
+		
+		double Frequency = Lowfrequency;
+		double endChirp =  Highfrequency ;
+		
+		double phase = 0;
+		
+		double min = Double.MAX_VALUE;
+		double max = Double.MIN_VALUE;
+		
+		
+		for (final Pair< Double, Double > p : points){
+			
+			min = Math.min(min, p.getB());
+			max = Math.max(max, p.getB());
+		}
 		
 			
-			double[] initialparameters = new double[degree + 5];
 			
+		for (int index = 0; index < points.size(); ++index){
+			fixedparameters[index] = points.get(index).getB();
+		}
+		initialparameters[0] = Frequency;
+		initialparameters[1] = endChirp;
+		initialparameters[2] = phase;
+		initialparameters[3] = min;
+		
+		return new ValuePair<double[], double[]>(fixedparameters, initialparameters);
+		}
+		
+	    if (model == UserModel.LinearPolyAmp){
+			
+			double[] initialparameters = new double[degree + 5];
+			double[] fixedparameters = null;
 			
 			
 			
 			double Frequency = Lowfrequency;
-			double endChirp =  Highfrequency;
+			double endChirp =  Highfrequency ;
 			
 			double phase = 0;
 			
@@ -111,7 +144,7 @@ public class ExtractSeries {
 				
 			for (int j = degree; j > 0; --j){
 				
-				initialparameters[j] = (max - min) ;
+				initialparameters[j] = (max - min);
 			}
 			
 			initialparameters[0] = (max - min);
@@ -122,13 +155,14 @@ public class ExtractSeries {
 			initialparameters[degree + 3] = phase;
 			initialparameters[degree + 4] = min;
 			
-			return initialparameters;
+			return new ValuePair<double[], double[]>(fixedparameters, initialparameters);
 			
 			
-		
+		}
 			
+	    else return null;
 		
-		
+    
 
 		
 		

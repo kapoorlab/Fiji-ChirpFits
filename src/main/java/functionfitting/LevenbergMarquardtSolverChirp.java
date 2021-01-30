@@ -4,9 +4,15 @@ import java.awt.Color;
 import java.util.ArrayList;
 
 import javax.swing.JProgressBar;
+import javax.swing.SwingWorker;
+
+import org.jfree.data.xy.XYSeriesCollection;
+
 import Jama.Matrix;
 import chirpModels.ChirpFitFunction;
+import chirpModels.LinearChirp;
 import chirpModels.UserChirpModel.UserModel;
+import ij.IJ;
 import net.imglib2.util.Pair;
 import net.imglib2.util.ValuePair;
 
@@ -31,6 +37,7 @@ public class LevenbergMarquardtSolverChirp {
 			final double[] x, 
 			
 			final double[] a, 
+			final double[] b,
 			final int totaltime,
 			final double[] y, 
 			final ChirpFitFunction f)  {
@@ -39,7 +46,7 @@ public class LevenbergMarquardtSolverChirp {
 		double sum = 0.;
 
 		for( int i = 0; i < npts; i++ ) {
-			double d = y[i] - f.val(x[i], a, totaltime, i, parent.degree);
+			double d = y[i] - f.val(x[i], a,b, totaltime, i, parent.degree);
 			sum = sum + (d*d);
 		}
 
@@ -65,6 +72,7 @@ public class LevenbergMarquardtSolverChirp {
 			double[] x, 
 			ArrayList<Pair<Double, Double>> timeseries,
 			double[] a,
+			double[] b,
 			int totaltime,
 			double[] y, 
 			ChirpFitFunction f,
@@ -76,7 +84,7 @@ public class LevenbergMarquardtSolverChirp {
 		int nparm = a.length;
 	
 		
-		double e0 = chiSquared(x, a, totaltime, y, f);
+		double e0 = chiSquared(x, a,b, totaltime, y, f);
 		
 		//System.out.println(e0);
 		boolean done = false;
@@ -98,7 +106,7 @@ public class LevenbergMarquardtSolverChirp {
 					for( int i = 0; i < npts; i++ ) {
 						double xi = x[i];
 						
-						H[r][c] += f.grad(xi, a, totaltime, r , i, parent.degree) * f.grad(xi, a, totaltime, c , i, parent.degree);
+						H[r][c] += f.grad(xi, a,b, totaltime, r , i, parent.degree) * f.grad(xi, a,b, totaltime, c , i, parent.degree);
 					}  //npts
 				} //c
 			} //r
@@ -112,7 +120,7 @@ public class LevenbergMarquardtSolverChirp {
 				g[r] = 0.;
 				for( int i = 0; i < npts; i++ ) {
 					double xi = x[i];
-					g[r] += (y[i]-f.val(xi,a, totaltime, i, parent.degree)) * f.grad(xi, a, totaltime, r, i, parent.degree);
+					g[r] += (y[i]-f.val(xi,a,b, totaltime, i, parent.degree)) * f.grad(xi, a,b, totaltime, r, i, parent.degree);
 				
 				}
 				
@@ -129,7 +137,7 @@ public class LevenbergMarquardtSolverChirp {
 				
 			} catch (RuntimeException re) {
 				// Matrix is singular
-				lambda *= 10.;
+				lambda *= 50.;
 				continue;
 			}
 			
@@ -138,7 +146,7 @@ public class LevenbergMarquardtSolverChirp {
 			
 			
 			double[] na = (new Matrix(a, nparm)).plus(new Matrix(d, nparm)).getRowPackedCopy();
-			double e1 = chiSquared(x, na, totaltime, y, f);
+			double e1 = chiSquared(x, na,b, totaltime, y, f);
 			//System.out.println(iter+ " " + lambda+ " "+ Math.abs(e1-e0));
 			// termination test (slightly different than NR)
 			if (Math.abs(e1-e0) > termepsilon) {
@@ -147,7 +155,7 @@ public class LevenbergMarquardtSolverChirp {
 			else {
 				
 				term++;
-				if (term == 4)
+				if (term == 20)
 					done = true;
 				
 			}
@@ -181,12 +189,36 @@ public class LevenbergMarquardtSolverChirp {
 				if (parent.dataset!=null)
 					parent.dataset.removeAllSeries();
 				
+				if (model == UserModel.Linear){
 			
+			double poly;
+			final ArrayList<Pair<Double, Double>> fitpoly = new ArrayList<Pair<Double, Double>>();
+			for (int i = 0; i < timeseries.size(); ++i) {
+
+				Double time = timeseries.get(i).getA();
+
+				poly = b[i]
+						* Math.cos(na[0] * time
+								+ (na[1] -na[0]) * time * time
+										/ (2 * totaltime)
+								+ na[2]) + na[3] ;
+				fitpoly.add(new ValuePair<Double, Double>(time, poly));
+			}
+				
+			parent.dataset.addSeries(Mainpeakfitter.drawPoints(timeseries));
+			parent.dataset.addSeries(Mainpeakfitter.drawPoints(fitpoly, "Fits"));
+			Mainpeakfitter.setColor(parent.chart, 1, new Color(255, 255, 64));
+			Mainpeakfitter.setStroke(parent.chart, 1, 2f);
+			  Mainpeakfitter.setColor(parent.chart, 0, new Color(64, 64, 64));
+		       Mainpeakfitter.setStroke(parent.chart, 0, 2f);
+		       Mainpeakfitter.setDisplayType(parent.chart, 0, false, true);
+				}
+				if (model == UserModel.LinearPolyAmp){
 					
 				
 					if (parent.dataset!=null)
 						parent.dataset.removeAllSeries();
-					parent.frequchirphist.add(new ValuePair<Double, Double> (((na[parent.degree + 1]) ),((na[parent.degree + 2]) )   ));
+					parent.frequchirphist.add(new ValuePair<Double, Double> (6.28/((na[parent.degree + 1]) * 60),6.28/((na[parent.degree + 2]) * 60)   ));
 					
 					double poly;
 					final ArrayList<Pair<Double, Double>> fitpoly = new ArrayList<Pair<Double, Double>>();
@@ -205,10 +237,10 @@ public class LevenbergMarquardtSolverChirp {
 							
 						}
 						poly = polynom
-								* Math.cos(Math.toRadians(na[parent.degree + 1] * time
+								* Math.cos(na[parent.degree + 1] * time
 										+ (na[parent.degree + 2] -na[parent.degree + 1]) * time * time
 												/ (2 * totaltime)
-										+ na[parent.degree + 3])) + na[parent.degree + 4] ;
+										+ na[parent.degree + 3]) + na[parent.degree + 4] ;
 						fitpoly.add(new ValuePair<Double, Double>(time, poly));
 					}
 					parent.dataset.addSeries(Mainpeakfitter.drawPoints(timeseries));
@@ -218,6 +250,8 @@ public class LevenbergMarquardtSolverChirp {
 					  Mainpeakfitter.setColor(parent.chart, 0, new Color(64, 64, 64));
 				       Mainpeakfitter.setStroke(parent.chart, 0, 2f);
 				       Mainpeakfitter.setDisplayType(parent.chart, 0, false, true);
+				}
+			
 				
 			}
 			

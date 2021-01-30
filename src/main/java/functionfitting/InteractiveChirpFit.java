@@ -49,6 +49,7 @@ import listeners.MeasureserialListener;
 import listeners.NumIterListener;
 import listeners.NumbinsListener;
 import listeners.RunPolyListener;
+import listeners.RunRandomListener;
 import listeners.WidthListener;
 import net.imglib2.util.Pair;
 import org.jfree.chart.JFreeChart;
@@ -84,7 +85,7 @@ public class InteractiveChirpFit
   public static float MIN_CHIRP = 0;
   public static float MAX_CHIRP = 400;
   public boolean enableHigh = false;
-  public float Lowfrequ = 10f;
+  public float Lowfrequ = 0.1f;
   public double Highfrequ = Lowfrequ / 2.0D;
   public double phase = 0.0D;
   public double back = 0.0D;
@@ -211,7 +212,7 @@ public class InteractiveChirpFit
     CheckboxGroup mode = new CheckboxGroup();
     
     Checkbox Polynomial = new Checkbox("Polynomial Amplitude", mode, polymode);
-    Checkbox Random = new Checkbox("Random Amplitude", mode, randommode);
+    Checkbox Random = new Checkbox("Fixed Amplitude", mode, randommode);
     
 
 
@@ -227,7 +228,7 @@ public class InteractiveChirpFit
     
     JButton Fit = new JButton("Fit current file");
     
-    inputLabelwidth = new JLabel("Enter expected peak width in hours");
+    inputLabelwidth = new JLabel("Enter expected peak width");
     inputFieldwidth = new TextField();
     inputFieldwidth.setColumns(5);
     inputFieldwidth.setText(String.valueOf(1));
@@ -263,7 +264,8 @@ public class InteractiveChirpFit
     
     Panelmodel.add(Polynomial, new GridBagConstraints(0, 0, 1, 1, 0.0D, 0.0D, 17, 
       2, insets, 0, 0));
-   
+    Panelmodel.add(Random, new GridBagConstraints(0, 1, 1, 1, 0.0D, 0.0D, 17, 
+    	      2, insets, 0, 0));
     Panelmodel.add(degreelabel, new GridBagConstraints(0, 2, 1, 1, 0.0D, 0.0D, 17, 
       2, insets, 0, 0));
     Panelmodel.add(degreetext, new GridBagConstraints(0, 3, 1, 1, 0.0D, 0.0D, 17, 
@@ -333,6 +335,7 @@ public class InteractiveChirpFit
     AutoFit.addActionListener(new AutoListener(this));
     Measureserial.addActionListener(new MeasureserialListener(this));
     Polynomial.addItemListener(new RunPolyListener(this));
+    Random.addItemListener(new RunRandomListener(this));
     Frequhist.addActionListener(new MakehistListener(this));
     inputFieldwidth.addTextListener(new WidthListener(this));
     inputFieldBins.addTextListener(new NumbinsListener(this));
@@ -354,7 +357,7 @@ public class InteractiveChirpFit
     timeseries = ExtractSeries.gatherdata(inputfiles[trackindex]);
     
     dataset = new XYSeriesCollection();
-    chart = Mainpeakfitter.makeChart(dataset, "Cell Intensity", "Timepoint", "Normalized Intensity");
+    chart = Mainpeakfitter.makeChart(dataset, "Cell Intensity", "Timepoint", "Intensity");
     jFreeChartFrame = Mainpeakfitter.display(chart, new Dimension(600, 600));
     
     row = trackindex;
@@ -392,25 +395,15 @@ public class InteractiveChirpFit
     timeseries = ExtractSeries.gatherdata(inputfiles[trackindex]);
     
     dataset = new XYSeriesCollection();
-    chart = Mainpeakfitter.makeChart(dataset, "Cell Intensity", "Timepoint", "Normalized Intensity");
+    chart = Mainpeakfitter.makeChart(dataset, "Cell Intensity", "Timepoint", " Intensity");
     jFreeChartFrame = Mainpeakfitter.display(chart, new Dimension(600, 600));
     
     row = trackindex;
-    updateCHIRPmute();
+    updateCHIRP();
   }
   
 
-  public void updateCHIRPmute()
-  {
-    FunctionFitterRunnable chirp = new FunctionFitterRunnable(this, timeseries, model, row, inputfiles.length, degree);
-    chirp.setMaxiter(maxiter);
-    chirp.checkInput();
-    chirp.setLowfrequency(6.283185307179586D / (Lowfrequ));
-    chirp.setHighfrequency(6.283185307179586D / (Highfrequ ));
-    
-
-    chirp.run();
-  }
+ 
   
 
 
@@ -420,8 +413,8 @@ public class InteractiveChirpFit
     FunctionFitter chirp = new FunctionFitter(this, timeseries, model, row, inputfiles.length, degree);
     chirp.setMaxiter(maxiter);
     chirp.checkInput();
-    chirp.setLowfrequency(6.283185307179586D / (Lowfrequ ));
-    chirp.setHighfrequency(6.283185307179586D / (Highfrequ ));
+    chirp.setLowfrequency((Lowfrequ ));
+    chirp.setHighfrequency((Highfrequ ));
     
     chirp.execute();
   }
