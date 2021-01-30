@@ -76,15 +76,15 @@ public class InteractiveChirpFit
   public boolean randommode = false;
   public boolean isDone;
   public static int MIN_SLIDER = 0;
-  public static int MAX_SLIDER = 500;
+  public static int MAX_SLIDER = 1000;
   public int row;
-  public static double MIN_FREQU = 0.0D;
-  public static double MAX_FREQU = 30.0D;
+  public static float MIN_FREQU = 0;
+  public static float MAX_FREQU = 300;
   
-  public static double MIN_CHIRP = 0.0D;
-  public static double MAX_CHIRP = 40.0D;
+  public static float MIN_CHIRP = 0;
+  public static float MAX_CHIRP = 400;
   public boolean enableHigh = false;
-  public double Lowfrequ = 2.6166666666666667D;
+  public float Lowfrequ = 10f;
   public double Highfrequ = Lowfrequ / 2.0D;
   public double phase = 0.0D;
   public double back = 0.0D;
@@ -94,7 +94,7 @@ public class InteractiveChirpFit
   public JLabel degreelabel = new JLabel("Amplitude Polynomial degree");
   
   public TextField degreetext;
-  public int maxiter = 5000;
+  public int maxiter = 500;
   public JProgressBar jpb;
   public JLabel label = new JLabel("Fitting..");
   public int Progressmin = 0;
@@ -222,8 +222,8 @@ public class InteractiveChirpFit
     
     Scrollbar CHIRP = new Scrollbar(0, ChirpInt, 1, MIN_SLIDER, MAX_SLIDER + 1);
     
-    Label FREQULabel = new Label("Lower Frequency (hrs) = " + nf.format(Lowfrequ), 1);
-    Label CHIRPLabel = new Label("Higher Frequency (hrs) = " + nf.format(Highfrequ), 1);
+    Label FREQULabel = new Label("Lower Frequency  = " + nf.format(Lowfrequ), 1);
+    Label CHIRPLabel = new Label("Higher Frequency  = " + nf.format(Highfrequ), 1);
     
     JButton Fit = new JButton("Fit current file");
     
@@ -351,7 +351,7 @@ public class InteractiveChirpFit
   {
     inputfile = inputfiles[trackindex];
     inputdirectory = inputfiles[trackindex].getParent();
-    timeseries = ExtractSeries.Normalize(ExtractSeries.gatherdata(inputfiles[trackindex]));
+    timeseries = ExtractSeries.gatherdata(inputfiles[trackindex]);
     
     dataset = new XYSeriesCollection();
     chart = Mainpeakfitter.makeChart(dataset, "Cell Intensity", "Timepoint", "Normalized Intensity");
@@ -359,7 +359,7 @@ public class InteractiveChirpFit
     
     row = trackindex;
     updateCHIRP();
-  }
+  }	
   
 
 
@@ -389,7 +389,7 @@ public class InteractiveChirpFit
   {
     inputfile = inputfiles[trackindex];
     inputdirectory = inputfiles[trackindex].getParent();
-    timeseries = ExtractSeries.Normalize(ExtractSeries.gatherdata(inputfiles[trackindex]));
+    timeseries = ExtractSeries.gatherdata(inputfiles[trackindex]);
     
     dataset = new XYSeriesCollection();
     chart = Mainpeakfitter.makeChart(dataset, "Cell Intensity", "Timepoint", "Normalized Intensity");
@@ -405,8 +405,8 @@ public class InteractiveChirpFit
     FunctionFitterRunnable chirp = new FunctionFitterRunnable(this, timeseries, model, row, inputfiles.length, degree);
     chirp.setMaxiter(maxiter);
     chirp.checkInput();
-    chirp.setLowfrequency(6.283185307179586D / (Lowfrequ * 60.0D));
-    chirp.setHighfrequency(6.283185307179586D / (Highfrequ * 60.0D));
+    chirp.setLowfrequency(6.283185307179586D / (Lowfrequ));
+    chirp.setHighfrequency(6.283185307179586D / (Highfrequ ));
     
 
     chirp.run();
@@ -420,17 +420,17 @@ public class InteractiveChirpFit
     FunctionFitter chirp = new FunctionFitter(this, timeseries, model, row, inputfiles.length, degree);
     chirp.setMaxiter(maxiter);
     chirp.checkInput();
-    chirp.setLowfrequency(6.283185307179586D / (Lowfrequ * 60.0D));
-    chirp.setHighfrequency(6.283185307179586D / (Highfrequ * 60.0D));
+    chirp.setLowfrequency(6.283185307179586D / (Lowfrequ ));
+    chirp.setHighfrequency(6.283185307179586D / (Highfrequ ));
     
     chirp.execute();
   }
   
 
-  public static double computeValueFromScrollbarPosition(int scrollbarPosition, int scrollbarMax, double minValue, double maxValue)
-  {
-    return minValue + scrollbarPosition / scrollbarMax * (maxValue - minValue);
-  }
+	public static float computeValueFromScrollbarPosition(final int scrollbarPosition, final float min,
+			final float max, final int scrollbarSize) {
+		return min + (scrollbarPosition / (float) scrollbarSize) * (max - min);
+	}
   
   public static int computeScrollbarPositionFromValue(int scrollbarMax, double value, double minValue, double maxValue)
   {

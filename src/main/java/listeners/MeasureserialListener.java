@@ -49,16 +49,12 @@ public class MeasureserialListener implements ActionListener {
 		parent.chooserA.setDialogTitle(parent.choosertitleA);
 		parent.chooserA.setFileSelectionMode(2);
 
-		parent.chooserA.setAcceptAllFileFilterUsed(false);
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("Track Files", new String[] { "txt" });
-
-		parent.chooserA.setFileFilter(filter);
 		parent.chooserA.showOpenDialog(parent.Cardframe);
 
 		parent.inputfiles = parent.chooserA.getSelectedFile().listFiles(new FilenameFilter() {
 
 			public boolean accept(File pathname, String filename) {
-				return filename.endsWith(".txt");
+				return filename.endsWith(".csv");
 
 			}
 

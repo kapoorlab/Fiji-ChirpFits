@@ -29,9 +29,10 @@ public class HighFrequencyListener implements AdjustmentListener {
 		
 		parent.Highfrequ = InteractiveChirpFit.computeValueFromScrollbarPosition(
 				event.getValue(),
-				InteractiveChirpFit.MAX_SLIDER,
+				
 				InteractiveChirpFit.MIN_CHIRP,
-				InteractiveChirpFit.MAX_CHIRP );
+				InteractiveChirpFit.MAX_CHIRP,
+				InteractiveChirpFit.MAX_SLIDER);
 
 		label.setText( "High Frequency (hrs) = " + parent.Highfrequ );
 		

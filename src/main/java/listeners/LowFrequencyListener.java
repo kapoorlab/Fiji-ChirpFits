@@ -25,11 +25,13 @@ public class LowFrequencyListener implements AdjustmentListener {
 		
 		parent.Lowfrequ = InteractiveChirpFit.computeValueFromScrollbarPosition(
 				event.getValue(),
-				InteractiveChirpFit.MAX_SLIDER,
 				InteractiveChirpFit.MIN_FREQU,
-				InteractiveChirpFit.MAX_FREQU );
-		
-		label.setText( "Low Frequency (hrs) = " + parent.Lowfrequ );
+				InteractiveChirpFit.MAX_FREQU,
+				
+				
+				InteractiveChirpFit.MAX_SLIDER
+				);
+		label.setText( "Low Frequency  = " + parent.Lowfrequ );
 	}
 	
 }

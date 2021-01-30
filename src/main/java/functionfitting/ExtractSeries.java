@@ -33,7 +33,7 @@ public class ExtractSeries {
 
 				if ( line.length() >= 3 && line.matches( "[0-9].*" ) )
 				{
-					final String[] split = line.trim().split( "\t" );
+					final String[] split = line.trim().split( "," );
 
 					final double timepoint = Double.parseDouble( split[ 0 ] );
 					final double value = Double.parseDouble( split[ 1 ] );
@@ -61,22 +61,7 @@ public class ExtractSeries {
 	}
 	
 	
-	public static ArrayList< Pair< Double, Double > > Normalize (ArrayList< Pair< Double, Double > > points){
-		
-		
-		Pair<Double, Double> minmax = minmax(points);
-		final ArrayList< Pair< Double, Double > > Normpoints = new ArrayList< Pair< Double, Double > >();
 
-		
-		
-		for (final Pair< Double, Double > p : points){
-			
-			Normpoints.add(new ValuePair<Double, Double>(p.getA(), p.getB() / (minmax.getB() - minmax.getA())));
-			
-		}
-		
-		return Normpoints;
-	}
 	
 	public static Pair<Double, Double> minmax (ArrayList< Pair< Double, Double > > points){
 		

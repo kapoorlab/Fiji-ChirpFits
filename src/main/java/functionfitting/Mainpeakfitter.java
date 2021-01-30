@@ -32,7 +32,7 @@ public class Mainpeakfitter {
 		final ArrayList<Pair<Double, Double>> untimeseries = ExtractSeries
 				.gatherdata(new File("/Users/varunkapoor/Documents/Ines_Fourier/FFT_Varun_Exp1All/Exp1_cell2.txt"));
 
-		final ArrayList<Pair<Double, Double>> timeseries = ExtractSeries.Normalize(untimeseries);
+		final ArrayList<Pair<Double, Double>> timeseries = untimeseries;
 
 		final XYSeriesCollection dataset = new XYSeriesCollection();
 

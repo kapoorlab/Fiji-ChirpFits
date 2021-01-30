@@ -44,15 +44,12 @@ public class ChirpFileChooser extends JPanel {
 			chooserA.setDialogTitle(choosertitleA);
 			chooserA.setFileSelectionMode(2);
 
-			chooserA.setAcceptAllFileFilterUsed(false);
-			FileNameExtensionFilter filter = new FileNameExtensionFilter("Intensity Files", new String[] { "txt" });
 
-			chooserA.setFileFilter(filter);
 			chooserA.showOpenDialog(parent);
 
 			AllMovies = chooserA.getSelectedFile().listFiles(new FilenameFilter() {
 				public boolean accept(File pathname, String filename) {
-					return filename.endsWith(".txt");
+					return filename.endsWith(".csv");
 				}
 
 			});
